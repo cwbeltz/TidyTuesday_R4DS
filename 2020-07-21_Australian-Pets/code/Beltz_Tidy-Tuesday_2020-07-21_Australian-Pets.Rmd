@@ -15,7 +15,9 @@ Load packages
 ```{r}
 #load packages
 library(tidyverse) 
-library(tidytuesdayR) 
+library(tidytuesdayR)
+library(viridis)
+library(rphylopic)
 ```
 
 
@@ -54,6 +56,13 @@ animal_outcomes_LONG <- animal_outcomes %>%
     )
 ```
 
+```{r}
+animal_outcomes_LONG <- animal_outcomes_LONG %>% 
+  filter(state == "Australia") %>% 
+  filter(!outcome %in% c("Other", "Currently In Care")) %>% 
+  filter(animal_type %in% c("Dogs", "Cats"))
+```
+
 
 ```{r}
 unique(animal_outcomes_LONG$animal_type)
@@ -63,6 +72,43 @@ unique(animal_outcomes_LONG$year)
 
 
 ```{r}
+dog <- name_search(text = "dog", options = "namebankID")[[1]]
+name_get(uuid = dog$uid[1], options = c('citationStart', 'html'))
+name_images(uuid = dog$uid[1])
+img_dog <- image_data("3c534a59-fd0c-41bb-80c7-1d18db9bae13", size = "512")[[1]]
 
+cat <- name_search(text = "Felis catus", options = "namebankID")[[1]]
+name_get(uuid = cat$uid[1], options = c('citationStart', 'html'))
+name_images(uuid = cat$uid[1])
+img_cat <- image_data("cc22d71c-a014-41a9-aaf1-5f2cffad6121", size = "512")[[1]]
 ```
+
+
+
+```{r}
+p0 <- ggplot(data = animal_outcomes_LONG,
+       mapping = aes(x = year, y = number, color = outcome))
+       
+p1 <- p0 + geom_line(size=0.9) +
+  facet_wrap(~animal_type)
+
+p2 <- p1 + 
+  ylab("Total Number") +
+  xlab("Year")
+  
+
+p3 <- p2 + scale_fill_viridis() + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank(),
+       panel.grid.minor = element_blank()) +
+#  theme(strip.background = element_blank(),
+#        strip.text.x = element_blank()) +
+  theme(legend.title = element_blank(), legend.position = "top") 
+
+p3 + add_phylopic(img_cat, 1, x=2016, y=39000, ysize=9000)
+
+#rphylopic: https://cran.r-project.org/web/packages/rphylopic/readme/README.html
+#adding to facets: https://stackoverflow.com/questions/44688623/adding-custom-images-to-ggplot-facets
+```
+
 
