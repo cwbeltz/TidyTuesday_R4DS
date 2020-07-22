@@ -35,6 +35,7 @@ brisbane_complaints <- tuesdata$brisbane_complaints
 Transform data
 
 ```{r}
+#code adapted from @pedrodrocha via https://github.com/pedrodrocha/TidyTuesday/tree/master/21-07-2020_Australian_Pets
 animal_outcomes_LONG <- animal_outcomes %>%
   pivot_longer(
     ACT:Total,
@@ -56,6 +57,7 @@ animal_outcomes_LONG <- animal_outcomes %>%
     )
 ```
 
+
 ```{r}
 animal_outcomes_LONG <- animal_outcomes_LONG %>% 
   filter(state == "Australia") %>% 
@@ -64,14 +66,30 @@ animal_outcomes_LONG <- animal_outcomes_LONG %>%
 ```
 
 
+
+Create function for inserting images in ggplot facets
+
 ```{r}
-unique(animal_outcomes_LONG$animal_type)
-unique(animal_outcomes_LONG$outcome)
-unique(animal_outcomes_LONG$year)
+#custom function create by @baptiste
+#Original post: https://stackoverflow.com/questions/32807665/removing-one-tablegrob-when-applied-to-a-box-plot-with-a-facet-wrap?answertab=votes#tab-top
+#Additional post: https://stackoverflow.com/questions/44688623/adding-custom-images-to-ggplot-facets
+
+require(ggplot2)
+require(grid)
+require(png)
+require(RCurl)
+
+annotation_custom2 <- 
+function (grob, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, data){ layer(data = data, stat = StatIdentity, position = PositionIdentity, 
+        geom = ggplot2:::GeomCustomAnn,
+        inherit.aes = TRUE, params = list(grob = grob, 
+                                          xmin = xmin, xmax = xmax, 
+                                          ymin = ymin, ymax = ymax))}
 ```
 
 
 ```{r}
+#obtain cat and dog image
 dog <- name_search(text = "dog", options = "namebankID")[[1]]
 name_get(uuid = dog$uid[1], options = c('citationStart', 'html'))
 name_images(uuid = dog$uid[1])
@@ -81,9 +99,15 @@ cat <- name_search(text = "Felis catus", options = "namebankID")[[1]]
 name_get(uuid = cat$uid[1], options = c('citationStart', 'html'))
 name_images(uuid = cat$uid[1])
 img_cat <- image_data("cc22d71c-a014-41a9-aaf1-5f2cffad6121", size = "512")[[1]]
+
+#create annotation using custom function
+anno_cat <- annotation_custom2(rasterGrob(img_cat, interpolate=TRUE), xmin=2014, xmax=2018, ymin=34000, ymax=44000, data=animal_outcomes_LONG[4,]) #set brackets to row with cat data
+anno_dog <- annotation_custom2(rasterGrob(img_dog, interpolate=TRUE), xmin=2014, xmax=2018, ymin=34000, ymax=44000, data=animal_outcomes_LONG[1,]) #set brackets to row with dog data
 ```
 
 
+
+Plot It!
 
 ```{r}
 p0 <- ggplot(data = animal_outcomes_LONG,
@@ -95,20 +119,16 @@ p1 <- p0 + geom_line(size=0.9) +
 p2 <- p1 + 
   ylab("Total Number") +
   xlab("Year")
-  
 
 p3 <- p2 + scale_fill_viridis() + 
   theme_bw() +
   theme(panel.grid.major = element_blank(),
        panel.grid.minor = element_blank()) +
-#  theme(strip.background = element_blank(),
-#        strip.text.x = element_blank()) +
+  theme(strip.background = element_blank(),
+        strip.text.x = element_blank()) +
   theme(legend.title = element_blank(), legend.position = "top") 
 
-p3 + add_phylopic(img_cat, 1, x=2016, y=39000, ysize=9000)
-
-#rphylopic: https://cran.r-project.org/web/packages/rphylopic/readme/README.html
-#adding to facets: https://stackoverflow.com/questions/44688623/adding-custom-images-to-ggplot-facets
+p3 + anno_cat + anno_dog
 ```
 
 
