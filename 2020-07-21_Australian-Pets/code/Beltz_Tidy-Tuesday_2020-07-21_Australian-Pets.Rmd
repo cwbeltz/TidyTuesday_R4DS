@@ -90,7 +90,7 @@ function (grob, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, data){ layer(d
 
 
 ```{r}
-#obtain cat and dog image
+#obtain cat and dog image using `rphylopic` package
 dog <- name_search(text = "dog", options = "namebankID")[[1]]
 name_get(uuid = dog$uid[1], options = c('citationStart', 'html'))
 name_images(uuid = dog$uid[1])
