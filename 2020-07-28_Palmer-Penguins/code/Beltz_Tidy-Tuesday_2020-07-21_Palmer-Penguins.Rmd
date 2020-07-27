@@ -1,0 +1,33 @@
+---
+title: 'Tidy Tuesday: (2020-07-28)'
+author: "Christopher Beltz"
+date: "7/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Load packages
+
+```{r}
+#load packages
+library(here)
+library(tidyverse) 
+library(tidytuesdayR)
+library(viridis)
+```
+
+
+Read in data
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load('2020-07-28')
+
+penguins_raw <- tuesdata[[2]]
+penguins_CLEAN <- tuesdata[[1]]
+```
+
+
