@@ -1,0 +1,129 @@
+---
+title: 'Tidy Tuesday: (2020-07-28)'
+author: "Christopher Beltz"
+date: "7/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Load packages
+
+```{r}
+#load packages
+library(here)
+library(tidyverse) 
+library(tidytuesdayR)
+library(viridis)
+
+library(rnaturalearth)
+library(sf)
+library(patchwork)
+```
+
+
+Read in data
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load('2020-07-28')
+
+penguins_raw <- tuesdata[[2]]
+penguins_CLEAN <- tuesdata[[1]]
+```
+
+
+Peak at the data
+
+```{r}
+#remove incomplete observations
+penguins_CLEAN <- penguins_CLEAN[complete.cases(penguins_CLEAN),]
+
+head(penguins_CLEAN)
+```
+
+
+Create map of Antarctica
+
+```{r}
+library(rnaturalearth)
+library(rnaturalearthhires)
+#rnaturalearthhires is from GitHub repo on 2020-07-27
+#install.packages("rnaturalearthhires",
+#                 repos = "http://packages.ropensci.org",
+#                 type = "source")
+```
+
+
+```{r}
+antarctica_sf <- rnaturalearth::ne_states(country = 'Antarctica', returnclass = 'sf') 
+
+map0 <- ggplot(antarctica_sf) + 
+  geom_sf() + 
+  geom_point(x=-64.05450, y=-64.77417, col="blue", size=3) + #add ppoint for Palmer LTER
+  theme_minimal()
+
+map0
+
+ant_map <- map0
+```
+
+
+Create bar graph of samples penguins over time
+
+```{r}
+bar_plot <- penguins_CLEAN %>%
+  group_by(year, species) %>%
+  summarise(observations=n()) %>%
+  ggplot(aes(x=year, y=observations)) +
+  geom_col(aes(fill=species))
+
+bar_plot
+```
+
+
+Create plot of bill width x length for each species
+
+```{r}
+p0 <- ggplot(data = penguins_CLEAN,
+       mapping = aes(x = bill_length_mm, y = bill_depth_mm, color = sex))
+       
+p1 <- p0 + geom_point(size=0.9) +
+  facet_wrap(~species)
+
+facet_plot <- p1
+```
+
+
+
+Create final combined image
+
+```{r}
+#create layout for `patchwork`
+#https://patchwork.data-imaginist.com/articles/guides/layout.html
+tues_layout <- "
+  AAAACC
+  AAAACC
+  DDDDDD
+  DDDDDD
+"
+```
+
+
+```{r}
+final_plot <- ant_map + bar_plot + facet_plot +
+  plot_layout(design = tues_layout) +
+  plot_annotation(title = 'Mr. Palmers Penguins',
+                  caption = 'By @BeltzEcology for #TidyTuesday\nData from Palmer LTER and `palmerpenguins`',
+                  subtitle = '1999 - 2015')
+
+final_plot
+```
+
+
+
+
+Artwork: https://allisonhorst.github.io/palmerpenguins/articles/art.html
+Palmer LTER logo: https://pal.lternet.edu/
