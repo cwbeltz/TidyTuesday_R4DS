@@ -62,7 +62,10 @@ map0 <- ggplot(antarctica_sf) +
   geom_point(x=-64.05450, y=-64.77417, col="blue", size=3) + #add ppoint for Palmer LTER
   theme_minimal() +
   theme(panel.grid.major = element_blank(),
-       panel.grid.minor = element_blank())
+       panel.grid.minor = element_blank()) +
+  annotate("text", -04.1,-87.0, label = "Antarctica", size=6) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank())
 
 map0
 
@@ -116,7 +119,7 @@ p2 <- p1 +
   scale_color_manual(values=peng_colors)
 
 p3 <-p2 +
-  guides(color="none") +
+  #guides(color="none") +
   theme(strip.background = element_blank(),
         strip.text.x = element_blank())
 
@@ -132,7 +135,9 @@ Load penguin image from @alison_horst
 pengart <- png::readPNG(here("2020-07-28_Palmer-Penguins", "images", "penguins.png"))
 
 penguin_img <- ggplot() + 
-  ggpubr::background_image(pengart)
+  ggpubr::background_image(pengart) +
+  theme(panel.background = element_rect(fill = "transparent",colour = NA),
+        plot.background = element_rect(fill = "transparent",colour = NA))
 
 penguin_img
 ```
