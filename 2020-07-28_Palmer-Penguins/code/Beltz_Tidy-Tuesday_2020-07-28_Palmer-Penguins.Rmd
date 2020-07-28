@@ -18,9 +18,6 @@ library(here)
 library(tidyverse) 
 library(tidytuesdayR)
 library(viridis)
-
-library(rnaturalearth)
-library(sf)
 library(patchwork)
 ```
 
@@ -47,10 +44,10 @@ head(penguins_CLEAN)
 
 Create map of Antarctica
 
-```{r}
-library(rnaturalearth)
-library(rnaturalearthhires)
-#rnaturalearthhires is from GitHub repo on 2020-07-27
+
+If needed, `rnaturalearthhires` is from GitHub repo on 2020-07-27
+
+```{r, eval=FALSE}
 #install.packages("rnaturalearthhires",
 #                 repos = "http://packages.ropensci.org",
 #                 type = "source")
@@ -63,7 +60,9 @@ antarctica_sf <- rnaturalearth::ne_states(country = 'Antarctica', returnclass = 
 map0 <- ggplot(antarctica_sf) + 
   geom_sf() + 
   geom_point(x=-64.05450, y=-64.77417, col="blue", size=3) + #add ppoint for Palmer LTER
-  theme_minimal()
+  theme_minimal() +
+  theme(panel.grid.major = element_blank(),
+       panel.grid.minor = element_blank())
 
 map0
 
@@ -74,11 +73,28 @@ ant_map <- map0
 Create bar graph of samples penguins over time
 
 ```{r}
+#chinstrap = pink (#B761C4)
+#gentoo = gray (#347274)
+#adelie = orange (#EF8733)
+peng_colors <- c("#EF8733", "#B761C4", "#347274")
+```
+
+
+```{r}
 bar_plot <- penguins_CLEAN %>%
   group_by(year, species) %>%
-  summarise(observations=n()) %>%
-  ggplot(aes(x=year, y=observations)) +
-  geom_col(aes(fill=species))
+  summarise(observations=n())
+
+bar_plot <- ggplot(data=bar_plot, aes(x=year, y=observations)) +
+  geom_col(aes(fill=species)) +
+  scale_fill_manual(values=peng_colors) +
+  ylab("Observations") +
+  xlab("Year") +
+  theme_bw() +
+  theme(legend.position = "none",
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank())
+  
 
 bar_plot
 ```
@@ -88,12 +104,37 @@ Create plot of bill width x length for each species
 
 ```{r}
 p0 <- ggplot(data = penguins_CLEAN,
-       mapping = aes(x = bill_length_mm, y = bill_depth_mm, color = sex))
+       mapping = aes(x = bill_length_mm, y = bill_depth_mm, shape = sex, color=species)) 
        
-p1 <- p0 + geom_point(size=0.9) +
+p1 <- p0 + geom_point(size=1.3) +
   facet_wrap(~species)
 
-facet_plot <- p1
+p2 <- p1 + 
+  ylab("Bill Depth (mm)") +
+  xlab("Bill Length (mm)") +
+  theme_minimal() +
+  scale_color_manual(values=peng_colors)
+
+p3 <-p2 +
+  guides(color="none") +
+  theme(strip.background = element_blank(),
+        strip.text.x = element_blank())
+
+facet_plot <- p3
+
+facet_plot
+```
+
+
+Load penguin image from @alison_horst
+
+```{r}
+pengart <- png::readPNG(here("2020-07-28_Palmer-Penguins", "images", "penguins.png"))
+
+penguin_img <- ggplot() + 
+  ggpubr::background_image(pengart)
+
+penguin_img
 ```
 
 
@@ -104,8 +145,10 @@ Create final combined image
 #create layout for `patchwork`
 #https://patchwork.data-imaginist.com/articles/guides/layout.html
 tues_layout <- "
-  AAAACC
-  AAAACC
+  AAAAAA
+  AAAAAA
+  BBBBCC
+  BBBBCC
   DDDDDD
   DDDDDD
 "
@@ -113,16 +156,25 @@ tues_layout <- "
 
 
 ```{r}
-final_plot <- ant_map + bar_plot + facet_plot +
+final_plot <- penguin_img + ant_map + bar_plot + facet_plot +
   plot_layout(design = tues_layout) +
   plot_annotation(title = 'Mr. Palmers Penguins',
-                  caption = 'By @BeltzEcology for #TidyTuesday\nData from Palmer LTER and `palmerpenguins`',
-                  subtitle = '1999 - 2015')
+                  caption = 'By @BeltzEcology for #TidyTuesday\nData from Palmer LTER and `palmerpenguins`\nArtwork by @allison_horst',
+                  subtitle = '2007 - 2009')
 
 final_plot
 ```
 
 
+```{r, eval=FALSE}
+ggsave(filename="Tidy-Tuesday_2020-07-28.jpg",
+       path=here("2020-07-28_Palmer-Penguins", "plot"),
+       bg="transparent",
+       dpi = 300,
+       units="in",
+       width=9.5,
+       height=6)
+```
 
 
 Artwork: https://allisonhorst.github.io/palmerpenguins/articles/art.html
