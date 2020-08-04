@@ -23,13 +23,57 @@ library(ggimage)
 ```
 
 
+
+Set theme:
+
+```{r}
+#from @Z3tt via https://github.com/Z3tt/TidyTuesday/commit/518871261343c983d9399f4cb05bc18de4fe122f
+theme_set(theme_minimal(base_size = 15, base_family = "Neutraface Slab Display TT Bold"))
+theme_update(
+  panel.grid.major = element_line(color = "grey92", size = .4),
+  panel.grid.minor = element_blank(),
+  axis.title.x = element_text(color = "grey30", margin = margin(t = 7)),
+  axis.title.y = element_text(color = "grey30", margin = margin(r = 7)),
+  axis.text = element_text(color = "grey50"),
+  axis.ticks =  element_line(color = "grey92", size = .4),
+  axis.ticks.length = unit(.6, "lines"),
+  legend.position = "top",
+  plot.title = element_text(hjust = 0, color = "black", 
+                            family = "Neutraface 2 Display Titling",
+                            size = 21, margin = margin(t = 10, b = 35)),
+  plot.subtitle = element_text(hjust = 0, face = "bold", color = "grey30",
+                               family = "Neutraface Text Book Italic", 
+                               size = 14, margin = margin(0, 0, 25, 0)),
+  plot.title.position = "plot",
+  plot.caption = element_text(color = "grey50", size = 10, hjust = 1,
+                              family = "Neutraface Display Medium", 
+                              lineheight = 1.05, margin = margin(30, 0, 0, 0)),
+  plot.caption.position = "plot", 
+  plot.margin = margin(rep(20, 4))
+)
+```
+
+
+
 Read in data
 
 ```{r}
 tuesdata <- tidytuesdayR::tt_load('2020-08-04')
 
 energy_types <- tuesdata$energy_types
+```
 
+
+Correct data:
+
+```{r}
+sum(is.na(energy_types)) 
+#energy_types[which(is.na(energy_types)), ] #add country name for EL and UK
+
+energy_types$country_name[which(energy_types$country == "EL")] <- "Greece"
+energy_types$country_name[which(energy_types$country == "UK")] <- "United Kingdom"
+
+sum(is.na(energy_types))
 unique(energy_types$country_name)
 ```
 
@@ -44,10 +88,52 @@ head(energy_types)
 ```
 
 
-NA check
 
 ```{r}
-sum(is.na(energy_types)) 
-#energy_types[which(is.na(energy_types)), ] #add country name for EL and UK
+
 ```
+
+
+
+
+
+
+
+Create final combined image
+
+```{r}
+#create layout for `patchwork`
+#https://patchwork.data-imaginist.com/articles/guides/layout.html
+tues_layout <- "
+  AAAAAA
+  AAAAAA
+  BBBBCC
+  BBBBCC
+  DDDDDD
+  DDDDDD
+"
+```
+
+
+```{r}
+final_plot <- penguin_img + ant_map + bar_plot + facet_plot +
+  plot_layout(design = tues_layout) +
+  plot_annotation(title = 'Eurpean Energy',
+                  caption = 'By @BeltzEcology for #TidyTuesday\nData from Eurostat,
+                  subtitle = '2016 - 2018')
+
+final_plot
+```
+
+
+```{r, eval=FALSE}
+ggsave(filename="Tidy-Tuesday_2020-08-04.jpg",
+       path=here("2020-08-04_Palmer-Penguins", "plot"),
+       bg="transparent",
+       dpi = 300,
+       units="in",
+       width=10,
+       height=7.5)
+```
+
 
