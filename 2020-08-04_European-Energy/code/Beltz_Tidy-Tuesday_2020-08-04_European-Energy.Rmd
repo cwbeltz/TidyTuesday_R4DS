@@ -1,0 +1,53 @@
+---
+title: 'Tidy Tuesday: (2020-08-04)'
+author: "Christopher Beltz"
+date: "8/04/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Load packages
+
+```{r}
+#load packages
+library(here)
+library(tidyverse) 
+library(tidytuesdayR)
+library(viridis)
+library(patchwork)
+library(ggimage)
+```
+
+
+Read in data
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load('2020-08-04')
+
+energy_types <- tuesdata$energy_types
+
+unique(energy_types$country_name)
+```
+
+
+
+Data check
+
+```{r}
+summary(energy_types)
+
+head(energy_types)
+```
+
+
+NA check
+
+```{r}
+sum(is.na(energy_types)) 
+#energy_types[which(is.na(energy_types)), ] #add country name for EL and UK
+```
+
